@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scientific Image Scoring System — Baseline Results</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --sidebar:#1a2235;
+  --sidebar-hover:#243049;
+  --sidebar-active:#2d3f5e;
+  --bg:#f0f2f5;
+  --surface:#ffffff;
+  --surface2:#f7f8fa;
+  --border:#e2e6ee;
+  --border2:#c8cfe0;
+  --text:#1a2235;
+  --text2:#4a5568;
+  --muted:#8492a6;
+  --blue:#3b6fd4;
+  --blue-light:#edf2fd;
+  --blue-dark:#2d55a8;
+  --green:#2daa6e;
+  --green-light:#e8f7f0;
+  --amber:#e8951a;
+  --amber-light:#fef3e2;
+  --red:#d94f4f;
+  --red-light:#fdeaea;
+  --header-h:56px;
+}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-size:14px;line-height:1.5;}
+
+/* ─── LAYOUT ─── */
+.layout{display:flex;flex-direction:column;min-height:100vh;}
+
+/* ─── TAB NAV ─── */
+.tab-nav{background:var(--surface);border-bottom:1px solid var(--border);display:flex;flex-wrap:wrap;gap:2px;padding:0 16px;position:sticky;top:0;z-index:200;}
+.tab-group-label{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:0.07em;text-transform:uppercase;padding:14px 10px 0;margin-right:2px;align-self:flex-start;white-space:nowrap;}
+.nav-item{display:inline-flex;align-items:center;gap:6px;padding:10px 12px;font-size:12px;color:var(--text2);cursor:pointer;transition:all 0.15s;border-bottom:2px solid transparent;user-select:none;white-space:nowrap;}
+.nav-item:hover{color:var(--blue);}
+.nav-item.active{color:var(--blue);border-bottom-color:var(--blue);font-weight:500;}
+.nav-item svg{width:13px;height:13px;flex-shrink:0;opacity:0.7;}
+.nav-item.active svg{opacity:1;}
+
+/* ─── MAIN ─── */
+.main{flex:1;display:flex;flex-direction:column;}
+
+/* ─── PAGE CONTENT ─── */
+.page-wrap{padding:20px 24px;display:none;}
+.page-wrap.active{display:block;}
+
+/* ─── METRIC CARDS ─── */
+.metric-row{display:grid;gap:14px;margin-bottom:20px;}
+.cols-4{grid-template-columns:repeat(4,1fr);}
+.cols-3{grid-template-columns:repeat(3,1fr);}
+.cols-5{grid-template-columns:repeat(5,1fr);}
+.metric{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 18px;position:relative;}
+.metric-accent{position:absolute;top:0;left:0;width:3px;height:100%;border-radius:10px 0 0 10px;}
+.metric-label{font-size:11px;font-weight:500;color:var(--muted);margin-bottom:6px;letter-spacing:0.02em;}
+.metric-val{font-size:26px;font-weight:700;line-height:1;letter-spacing:-0.02em;}
+.metric-sub{font-size:11px;color:var(--muted);margin-top:5px;}
+.c-b{color:var(--blue);}.c-g{color:var(--green);}.c-a{color:var(--amber);}.c-r{color:var(--red);}
+
+/* ─── CARDS ─── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px;margin-bottom:16px;}
+.card-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px;}
+.card-desc{font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.5;}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:16px;}
+.section-label{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:0.06em;text-transform:uppercase;margin:20px 0 10px;display:flex;align-items:center;gap:8px;}
+.section-label::after{content:'';flex:1;height:1px;background:var(--border);}
+
+/* ─── LEGEND ─── */
+.legend{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:10px;}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2);}
+.ld{width:10px;height:10px;border-radius:2px;flex-shrink:0;}
+
+/* ─── NOTE BOXES ─── */
+.note{border-left:3px solid var(--blue);background:var(--blue-light);border-radius:0 8px 8px 0;padding:10px 14px;margin-bottom:14px;font-size:12px;color:var(--text2);line-height:1.6;}
+.note.warn{border-left-color:var(--amber);background:var(--amber-light);}
+.note.good{border-left-color:var(--green);background:var(--green-light);}
+.note strong{color:var(--text);}
+
+/* ─── DIM TABS ─── */
+.dim-tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;}
+.dim-tab{font-size:12px;font-weight:500;padding:5px 14px;border-radius:6px;border:1px solid var(--border2);background:var(--surface);color:var(--text2);cursor:pointer;transition:all 0.15s;}
+.dim-tab:hover{border-color:var(--blue);color:var(--blue);}
+.dim-tab.active{background:var(--blue);border-color:var(--blue);color:#fff;}
+
+/* ─── CONFUSION TABLE ─── */
+.confusion-wrap{overflow-x:auto;}
+.confusion-table{border-collapse:collapse;font-size:12px;width:100%;}
+.confusion-table th,.confusion-table td{border:1px solid var(--border);padding:7px 10px;text-align:center;min-width:52px;}
+.confusion-table th{background:var(--surface2);color:var(--text2);font-weight:500;}
+.cf-diag{background:#dff5eb;color:#1a7a4a;font-weight:600;}
+.cf-over{background:#e8f0fc;color:var(--blue);}
+.cf-under{background:#fdeaea;color:var(--red);}
+.cf-zero{color:var(--muted);}
+
+/* ─── RANK TABLE ─── */
+.rank-table{width:100%;border-collapse:collapse;font-size:12px;}
+.rank-table th{text-align:left;font-weight:500;color:var(--muted);padding:8px 10px;border-bottom:2px solid var(--border);}
+.rank-table td{padding:7px 10px;border-bottom:1px solid var(--border);color:var(--text);}
+.rank-table tr:hover td{background:var(--surface2);}
+.tier-S{color:#b7791f;font-weight:700;background:#fef9c3;padding:2px 6px;border-radius:3px;font-size:11px;}
+.tier-A{color:#276749;font-weight:600;background:#c6f6d5;padding:2px 6px;border-radius:3px;font-size:11px;}
+.tier-B{color:var(--blue);font-weight:500;background:var(--blue-light);padding:2px 6px;border-radius:3px;font-size:11px;}
+.tier-C{color:var(--muted);background:var(--surface2);padding:2px 6px;border-radius:3px;font-size:11px;}
+.wb-wrap{display:flex;align-items:center;gap:6px;}
+.wb-track{flex:1;height:5px;background:var(--border);border-radius:3px;}
+.wb-fill{height:5px;border-radius:3px;}
+
+/* ─── COMPARE CARDS ─── */
+.compare-pair{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+.compare-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;}
+.compare-card.highlight{border-color:#c2d4f5;background:#f5f8ff;}
+.compare-card .cc-label{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:0.05em;text-transform:uppercase;margin-bottom:8px;}
+.compare-card .cc-key{display:flex;justify-content:space-between;align-items:baseline;padding:5px 0;border-bottom:1px solid var(--border);}
+.compare-card .cc-key:last-child{border-bottom:none;}
+.compare-card .cc-k{font-size:12px;color:var(--text2);}
+.compare-card .cc-v{font-size:13px;font-weight:600;}
+.up{color:var(--green);}.down{color:var(--red);}.same{color:var(--text2);}
+
+/* ─── BT SCORE BARS ─── */
+.bt-bar-row{display:flex;align-items:center;gap:8px;margin-bottom:4px;}
+.bt-bar-label{font-size:10px;color:var(--muted);width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right;flex-shrink:0;}
+.bt-bar-track{flex:1;height:6px;background:var(--border);border-radius:3px;}
+.bt-bar-fill{height:6px;border-radius:3px;}
+.bt-bar-val{font-size:11px;font-weight:600;width:44px;text-align:right;flex-shrink:0;}
+
+/* ─── FILTER TABS ─── */
+.filter-row{display:flex;align-items:center;gap:6px;margin-bottom:12px;flex-wrap:wrap;}
+.filter-row span{font-size:12px;color:var(--muted);}
+.filter-btn{font-size:11px;font-weight:500;padding:4px 10px;border-radius:5px;border:1px solid var(--border2);background:var(--surface);color:var(--text2);cursor:pointer;transition:all 0.15s;}
+.filter-btn:hover,.filter-btn.active{background:var(--blue);border-color:var(--blue);color:#fff;}
+#filter-count{margin-left:8px;font-size:11px;color:var(--muted);}
+
+@media(max-width:900px){
+  .cols-4,.cols-5{grid-template-columns:1fr 1fr;}
+  .grid-2,.grid-3,.compare-pair{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+<div class="layout">
+
+<!-- ════ TAB NAV ════ -->
+<nav class="tab-nav">
+  <span class="tab-group-label">Overview</span>
+  <div class="nav-item active" onclick="goto('home',this)">
+    <svg viewBox="0 0 16 16" fill="currentColor"><path d="M2 6l6-5 6 5v8a1 1 0 01-1 1H3a1 1 0 01-1-1V6z"/></svg>
+    Summary
+  </div>
+  <div class="nav-item" onclick="goto('score-dist',this)">
+    <svg viewBox="0 0 16 16" fill="currentColor"><rect x="2" y="10" width="3" height="4"/><rect x="6.5" y="6" width="3" height="8"/><rect x="11" y="2" width="3" height="12"/></svg>
+    Score Distributions
+  </div>
+
+  <span class="tab-group-label" style="margin-left:8px;">LLM Eval</span>
+  <div class="nav-item" onclick="goto('mae',this)">
+    <svg viewBox="0 0 16 16" fill="currentColor"><path d="M2 14L6 8l3 3 3-5 2 3" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+    MAE Analysis
+  </div>
+  <div class="nav-item" onclick="goto('bias',this)">
+    <svg viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="8" y1="4" x2="8" y2="12" stroke="currentColor" stroke-width="1.5"/><line x1="4" y1="8" x2="12" y2="8" stroke="currentColor" stroke-width="1.5"/></svg>
+    Prediction Bias
+  </div>
+  <div class="nav-item" onclick="goto('confusion',this)">
+    <svg viewBox="0 0 16 16" fill="currentColor"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>
+    Confusion Matrix
+  </div>
+  <div class="nav-item" onclick="goto('figtype',this)">
+    <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 2a6 6 0 100 12A6 6 0 008 2zm0 1v5l3.5 2"/></svg>
+    By Figure Type
+  </div>
+
+  <span class="tab-group-label" style="margin-left:8px;">Cross-Judge</span>
+  <div class="nav-item" onclick="goto('judges',this)">
+    <svg viewBox="0 0 16 16" fill="currentColor"><circle cx="6" cy="5" r="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="11" cy="5" r="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M1 13c0-3 2-4 5-4h4c3 0 5 1 5 4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+    Judge Comparison
+  </div>
+  <div class="nav-item" onclick="goto('consistency',this)">
+    <svg viewBox="0 0 16 16" fill="currentColor"><path d="M2 8h4M10 8h4M8 2v4M8 10v4" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+    Consistency
+  </div>
+
+  <span class="tab-group-label" style="margin-left:8px;">Ranking</span>
+  <div class="nav-item" onclick="goto('bt',this)">
+    <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 2l1.5 3.5L13 6l-2.5 2.5.5 3.5L8 10.5 5 12l.5-3.5L3 6l3.5-.5z"/></svg>
+    Bradley-Terry
+  </div>
+  <div class="nav-item" onclick="goto('pairwise',this)">
+    <svg viewBox="0 0 16 16" fill="currentColor"><rect x="2" y="3" width="5" height="10" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="9" y="3" width="5" height="10" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="7" y1="8" x2="9" y2="8" stroke="currentColor" stroke-width="1.5"/></svg>
+    Pairwise Wins
+  </div>
+
+  <span class="tab-group-label" style="margin-left:8px;">Data Scaling</span>
+  <div class="nav-item" onclick="goto('scaling',this)">
+    <svg viewBox="0 0 16 16" fill="currentColor"><path d="M2 12L6 7l3 2 5-7" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+    n=925 → 1982
+  </div>
+</nav>
+
+<!-- ════ MAIN ════ -->
+<div class="main">
+
+  <!-- ══ HOME ══ -->
+  <div id="page-home" class="page-wrap active">
+    <div class="note" style="margin-bottom:20px;"><strong>Primary evaluation set:</strong> splits_v2 test (n=396, 235 papers). Human pool n=1,982. All headline numbers below are from the splits_v2 test set unless noted.</div>
+
+    <div class="metric-row cols-4">
+      <div class="metric"><div class="metric-accent" style="background:var(--blue)"></div><div class="metric-label">LLM-as-Judge Overall MAE</div><div class="metric-val c-b">0.864</div><div class="metric-sub">splits_v2 test · best baseline</div></div>
+      <div class="metric"><div class="metric-accent" style="background:var(--green)"></div><div class="metric-label">SigLIP2-Ridge Overall MAE</div><div class="metric-val c-g">0.877</div><div class="metric-sub">strongest visual method</div></div>
+      <div class="metric"><div class="metric-accent" style="background:var(--amber)"></div><div class="metric-label">Median Baseline MAE</div><div class="metric-val c-a">0.897</div><div class="metric-sub">trivial constant predictor</div></div>
+      <div class="metric"><div class="metric-accent" style="background:#9b72f5)"></div><div class="metric-label">SigLIP2 Structure r</div><div class="metric-val" style="color:#7c5cbf;">+0.407</div><div class="metric-sub">best single Pearson r</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">MAE comparison — LLM-as-Judge · SigLIP2-Ridge · Median baseline (splits_v2 test, n=396)</div>
+      <div class="card-desc">Lower is better. LLM best overall (0.864). SigLIP2 leads on structure (MAE 0.859). Median barely beats LLM on relevance due to tight gold distribution (both predict ~4).</div>
+      <div class="legend">
+        <div class="legend-item"><div class="ld" style="background:#3b6fd4"></div>LLM-as-Judge</div>
+        <div class="legend-item"><div class="ld" style="background:#2daa6e"></div>SigLIP2-Ridge</div>
+        <div class="legend-item"><div class="ld" style="background:#94a3b8"></div>Median baseline</div>
+      </div>
+      <div style="position:relative;height:240px;"><canvas id="homeMAE"></canvas></div>
+      <div style="height:14px;"></div>
+      <div class="card-desc" style="margin-bottom:8px;">Pearson r — higher is better. SigLIP2 leads on structure (+0.407) and relevance (+0.187). LLM leads on informativeness (+0.298).</div>
+      <div style="position:relative;height:180px;"><canvas id="homePearson"></canvas></div>
+    </div>
+
+    <div class="note good"><strong>Key narrative (Final Report §7.3):</strong> LLM-as-judge (MAE 0.864) and SigLIP2-Ridge (0.877) both clear the Median baseline (0.897) — margin −0.033 is ~2.4× the noise floor at n=396, confirming the result is stable. Pure similarity methods (CLIPScore, BERTScore) carry no meaningful signal. Relevance is a ceiling dimension — both methods' Pearson r converge toward 0 as n grows.</div>
+  </div>
+
+  <!-- ══ SCORE DIST ══ -->
+  <div id="page-score-dist" class="page-wrap">
+    <div class="note warn"><strong>Score compression:</strong> The LLM almost never predicts 1 or 2. Relevance: 873/924 = 94.5% predictions are score 4. Structure: 826/924 = <strong>89.4%</strong> predictions are score 4. This explains strong over-prediction for low-scoring figures.</div>
+
+    <div class="section-label">Human vs predicted score frequencies (v8 full run, n=924 valid)</div>
+    <div class="grid-2">
+      <div class="card"><div class="card-title">Clarity</div><div style="position:relative;height:190px;"><canvas id="dClar"></canvas></div></div>
+      <div class="card"><div class="card-title">Relevance — 94.5% predicted as 4</div><div style="position:relative;height:190px;"><canvas id="dRel"></canvas></div></div>
+      <div class="card"><div class="card-title">Informativeness</div><div style="position:relative;height:190px;"><canvas id="dInfo"></canvas></div></div>
+      <div class="card"><div class="card-title">Structure — 89.4% predicted as 4</div><div style="position:relative;height:190px;"><canvas id="dStr"></canvas></div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Per-sample mean absolute error distribution (n=924)</div>
+      <div class="card-desc">Median MAE = 0.75. 43 exact predictions (MAE = 0). 21 severe cases (MAE > 2). Most samples fall in 0.25–1.0 band.</div>
+      <div style="position:relative;height:200px;"><canvas id="maeHistChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- ══ MAE ══ -->
+  <div id="page-mae" class="page-wrap">
+    <div class="metric-row cols-4">
+      <div class="metric"><div class="metric-accent" style="background:var(--red)"></div><div class="metric-label">Clarity MAE</div><div class="metric-val c-r">0.951</div><div class="metric-sub">worst dimension (v8)</div></div>
+      <div class="metric"><div class="metric-accent" style="background:var(--green)"></div><div class="metric-label">Relevance MAE</div><div class="metric-val c-g">0.760</div><div class="metric-sub">best dimension (v8)</div></div>
+      <div class="metric"><div class="metric-accent" style="background:var(--amber)"></div><div class="metric-label">Informativeness MAE</div><div class="metric-val c-a">0.808</div><div class="metric-sub"></div></div>
+      <div class="metric"><div class="metric-accent" style="background:var(--blue)"></div><div class="metric-label">Structure MAE</div><div class="metric-val c-b">0.797</div><div class="metric-sub"></div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Error value frequency per dimension (n=924 valid predictions)</div>
+      <div class="card-desc">How often does LLM miss by 0 / 1 / 2 / 3 points? Relevance has most exact matches (341). Clarity has most 2- and 3-point errors.</div>
+      <div class="legend">
+        <div class="legend-item"><div class="ld" style="background:#3b6fd4"></div>clarity</div>
+        <div class="legend-item"><div class="ld" style="background:#2daa6e"></div>relevance</div>
+        <div class="legend-item"><div class="ld" style="background:#e8951a"></div>informativeness</div>
+        <div class="legend-item"><div class="ld" style="background:#d94f4f"></div>structure</div>
+      </div>
+      <div style="position:relative;height:260px;"><canvas id="errFreq"></canvas></div>
+    </div>
+    <div class="grid-2">
+      <div class="card"><div class="card-title">Pearson r — v8 full data</div><div class="card-desc">Correlation of pred vs human</div><div style="position:relative;height:190px;"><canvas id="pearsonV8"></canvas></div></div>
+      <div class="card"><div class="card-title">Spearman ρ — v8 full data</div><div class="card-desc">Rank-order correlation</div><div style="position:relative;height:190px;"><canvas id="spearmanV8"></canvas></div></div>
+    </div>
+  </div>
+
+  <!-- ══ BIAS ══ -->
+  <div id="page-bias" class="page-wrap">
+    <div class="note warn"><strong>Systematic over-prediction:</strong> When human scores 1, LLM predicts ~3.7 on average (+2.7 bias). When human scores 5, LLM averages ~4.0 (−1.0 bias). Consistent across all 4 dimensions — score compression effect.</div>
+    <div class="card">
+      <div class="card-title">Mean prediction bias by true human score level</div>
+      <div class="card-desc">bias = pred − human. Positive = over-prediction. Zero line = perfect calibration. All dimensions show same V-shape inversion at human = 4.</div>
+      <div class="legend">
+        <div class="legend-item"><div class="ld" style="background:#3b6fd4"></div>clarity</div>
+        <div class="legend-item"><div class="ld" style="background:#2daa6e"></div>relevance</div>
+        <div class="legend-item"><div class="ld" style="background:#e8951a"></div>informativeness</div>
+        <div class="legend-item"><div class="ld" style="background:#d94f4f"></div>structure</div>
+      </div>
+      <div style="position:relative;height:280px;"><canvas id="biasChart"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Mean bias per dimension × figure type (v8)</div>
+      <div class="card-desc">architecture_diagram has lowest bias overall. qualitative_example and other see stronger over-prediction on clarity and structure.</div>
+      <div style="position:relative;height:240px;"><canvas id="ftBias"></canvas></div>
+    </div>
+  </div>
+
+  <!-- ══ CONFUSION ══ -->
+  <div id="page-confusion" class="page-wrap">
+    <div class="note"><strong>Reading guide:</strong> Rows = human score (1–5) · Columns = predicted score (1–5). <span style="background:#dff5eb;color:#1a7a4a;padding:1px 5px;border-radius:3px;font-weight:600;">Green diagonal</span> = exact match · <span style="background:#e8f0fc;color:#3b6fd4;padding:1px 5px;border-radius:3px;">Blue above diagonal</span> = LLM over-predicts · <span style="background:#fdeaea;color:#d94f4f;padding:1px 5px;border-radius:3px;">Red below diagonal</span> = under-predicts.</div>
+    <div class="dim-tabs">
+      <button class="dim-tab active" onclick="showConf('clarity',this)">Clarity</button>
+      <button class="dim-tab" onclick="showConf('relevance',this)">Relevance</button>
+      <button class="dim-tab" onclick="showConf('informativeness',this)">Informativeness</button>
+      <button class="dim-tab" onclick="showConf('structure',this)">Structure</button>
+    </div>
+    <div class="card" id="confCard"></div>
+  </div>
+
+  <!-- ══ FIGURE TYPE ══ -->
+  <div id="page-figtype" class="page-wrap">
+    <div class="note"><strong>Test set composition (splits_v2 test, n=396):</strong> architecture_diagram n=146 · other n=139 · qualitative_example n=111. Worst cell: LLM qualitative_example × structure MAE = 1.054.</div>
+    <div class="metric-row cols-3">
+      <div class="metric"><div class="metric-accent" style="background:var(--blue)"></div><div class="metric-label">arch_diagram MAE</div><div class="metric-val c-b">0.766</div><div class="metric-sub">n=146 · best type (v2 test)</div></div>
+      <div class="metric"><div class="metric-accent" style="background:var(--amber)"></div><div class="metric-label">qualitative_ex MAE</div><div class="metric-val c-a">0.969</div><div class="metric-sub">n=111 · hardest (v2 test)</div></div>
+      <div class="metric"><div class="metric-accent" style="background:var(--red)"></div><div class="metric-label">other MAE</div><div class="metric-val c-r">0.883</div><div class="metric-sub">n=139 (v2 test)</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">LLM-as-Judge MAE per dimension × figure type (splits_v2 test)</div>
+      <div class="card-desc">arch_diagram × relevance = 0.610 (best LLM cell). qualitative_example × structure = 1.054 (worst LLM cell). Caution: arch_diagram relevance Pearson ≈ 0 — the low MAE reflects guessing near median, not true signal.</div>
+      <div class="legend">
+        <div class="legend-item"><div class="ld" style="background:#3b6fd4"></div>arch_diagram</div>
+        <div class="legend-item"><div class="ld" style="background:#e8951a"></div>qualitative_ex</div>
+        <div class="legend-item"><div class="ld" style="background:#d94f4f"></div>other</div>
+      </div>
+      <div style="position:relative;height:260px;"><canvas id="ftMAE"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">SigLIP2-Ridge MAE per dimension × figure type (splits_v2 test)</div>
+      <div class="card-desc">SigLIP2 × qualitative_example × structure Pearson +0.420 (down from v8 +0.616 on n=53, but remains strong).</div>
+      <div style="position:relative;height:220px;"><canvas id="siglipMAE"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">splits_v2 dataset composition (n=1,982 total; train/dev/test = 1184/402/396)</div>
+      <div style="position:relative;height:200px;"><canvas id="splitChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- ══ JUDGES ══ -->
+  <div id="page-judges" class="page-wrap">
+    <div class="metric-row cols-3">
+      <div class="metric"><div class="metric-accent" style="background:var(--blue)"></div><div class="metric-label">gpt-5.4-mini (selected)</div><div class="metric-val c-b">0.789</div><div class="metric-sub">overall MAE vs human · n=200</div></div>
+      <div class="metric"><div class="metric-accent" style="background:var(--amber)"></div><div class="metric-label">haiku-4.5</div><div class="metric-val c-a">0.898</div><div class="metric-sub">n=200</div></div>
+      <div class="metric"><div class="metric-accent" style="background:var(--red)"></div><div class="metric-label">gemini-2.5-flash</div><div class="metric-val c-r">0.903</div><div class="metric-sub">n=200</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Per-dimension MAE vs human — three judges (n=200 subset)</div>
+      <div class="legend">
+        <div class="legend-item"><div class="ld" style="background:#3b6fd4"></div>gpt-5.4-mini</div>
+        <div class="legend-item"><div class="ld" style="background:#2daa6e"></div>gemini-2.5-flash</div>
+        <div class="legend-item"><div class="ld" style="background:#e8951a"></div>haiku-4.5</div>
+      </div>
+      <div style="position:relative;height:240px;"><canvas id="judgesChart"></canvas></div>
+    </div>
+    <div class="grid-2">
+      <div class="card"><div class="card-title">Judge ranking (overall MAE)</div><div style="position:relative;height:160px;"><canvas id="judgeRank"></canvas></div></div>
+      <div class="card">
+        <div class="card-title">GPT-5.4-mini full run (splits_v2 test, n=396)</div>
+        <div style="margin-top:10px;">
+          <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:12px;color:var(--text2);">relevance MAE</span><span style="font-weight:600;color:var(--green);">0.778</span></div>
+          <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:12px;color:var(--text2);">informativeness MAE</span><span style="font-weight:600;color:var(--amber);">0.828</span></div>
+          <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:12px;color:var(--text2);">structure MAE</span><span style="font-weight:600;color:var(--red);">0.947</span></div>
+          <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-size:12px;color:var(--text2);">clarity MAE</span><span style="font-weight:600;color:var(--blue);">0.902</span></div>
+          <div style="display:flex;justify-content:space-between;padding:6px 0;"><span style="font-size:12px;color:var(--text2);">overall MAE</span><span style="font-weight:700;color:var(--blue);">0.864</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ CONSISTENCY ══ -->
+  <div id="page-consistency" class="page-wrap">
+    <div class="metric-row cols-4">
+      <div class="metric"><div class="metric-accent" style="background:var(--green)"></div><div class="metric-label">Structure exact agree</div><div class="metric-val c-g">87.7%</div><div class="metric-sub">MAE 0.125 · α 0.065</div></div>
+      <div class="metric"><div class="metric-accent" style="background:var(--amber)"></div><div class="metric-label">Relevance exact agree</div><div class="metric-val c-a">67.8%</div><div class="metric-sub">MAE 0.325 · α 0.064</div></div>
+      <div class="metric"><div class="metric-accent" style="background:var(--blue)"></div><div class="metric-label">Clarity exact agree</div><div class="metric-val c-b">53.9%</div><div class="metric-sub">MAE 0.487 · α 0.239</div></div>
+      <div class="metric"><div class="metric-accent" style="background:var(--red)"></div><div class="metric-label">Informativn. exact</div><div class="metric-val c-r">41.8%</div><div class="metric-sub">MAE 0.621 · α 0.198</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">GPT vs Gemini inter-judge MAE and exact agreement (n=918)</div>
+      <div class="legend">
+        <div class="legend-item"><div class="ld" style="background:#d94f4f"></div>Inter-judge MAE (left axis)</div>
+        <div class="legend-item"><div class="ld" style="background:rgba(45,170,110,0.4);border:1px solid #2daa6e;"></div>Exact agree % (right axis)</div>
+      </div>
+      <div style="position:relative;height:240px;"><canvas id="consistChart"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Krippendorff α (ordinal) per dimension</div>
+      <div class="card-desc">Clarity achieves highest α (0.239) despite moderate exact agreement. Low α for structure/relevance reflects score concentration — both judges agree at "4", which compresses variance and lowers α while keeping exact-match high.</div>
+      <div style="position:relative;height:180px;"><canvas id="alphaChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- ══ BT ══ -->
+  <div id="page-bt" class="page-wrap">
+    <div class="metric-row cols-4">
+      <div class="metric"><div class="metric-accent" style="background:var(--blue)"></div><div class="metric-label">Figures ranked</div><div class="metric-val c-b">200</div><div class="metric-sub">converged · 182 iter</div></div>
+      <div class="metric"><div class="metric-accent" style="background:var(--green)"></div><div class="metric-label">Total pairs</div><div class="metric-val c-g">427K</div><div class="metric-sub">pairwise comparisons</div></div>
+      <div class="metric"><div class="metric-accent" style="background:var(--amber)"></div><div class="metric-label">Decided</div><div class="metric-val c-a">76.2%</div><div class="metric-sub">325,454 non-ties</div></div>
+      <div class="metric"><div class="metric-accent" style="background:#b7791f"></div><div class="metric-label">S-tier figures</div><div class="metric-val" style="color:#b7791f;">7</div><div class="metric-sub">BT ≥ 0.025</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">BT score distribution — all 200 figures</div>
+      <div class="card-desc">Extreme skew: top figure (01604::fig_02, BT 0.044) is ~44× the median. Color = tier.</div>
+      <div style="position:relative;height:210px;"><canvas id="btDist"></canvas></div>
+    </div>
+    <div class="card" style="overflow-x:auto;">
+      <div class="card-title">Top 50 figures — ranked by BT score</div>
+      <div class="filter-row">
+        <span>Filter tier:</span>
+        <button class="filter-btn active" onclick="filterTier('all',this)">All</button>
+        <button class="filter-btn" onclick="filterTier('S',this)">S</button>
+        <button class="filter-btn" onclick="filterTier('A',this)">A</button>
+        <button class="filter-btn" onclick="filterTier('B',this)">B</button>
+        <button class="filter-btn" onclick="filterTier('C',this)">C</button>
+        <span id="filter-count">200 figures</span>
+      </div>
+      <table class="rank-table"><thead><tr><th>#</th><th>Figure ID</th><th>Tier</th><th>BT Score</th><th>Win Rate</th><th style="min-width:130px;">W / L</th></tr></thead>
+      <tbody id="btBody"></tbody></table>
+    </div>
+  </div>
+
+  <!-- ══ PAIRWISE ══ -->
+  <div id="page-pairwise" class="page-wrap">
+    <div class="grid-2">
+      <div class="card"><div class="card-title">Top 15 — pairwise wins (raw, n=918 set)</div><div style="position:relative;height:260px;"><canvas id="pwTop15"></canvas></div></div>
+      <div class="card"><div class="card-title">Top 40 — wins vs losses balance</div><div style="position:relative;height:260px;"><canvas id="pwWL"></canvas></div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">BT score vs win rate — all 200 figures</div>
+      <div class="card-desc">Near-perfect monotonic at extremes. Mid-range scatter = opponent quality effects. Gold = S-tier, green = A, blue = B, gray = C.</div>
+      <div style="position:relative;height:300px;"><canvas id="btScatter"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Win rate histogram</div>
+      <div style="position:relative;height:180px;"><canvas id="wrHist"></canvas></div>
+    </div>
+  </div>
+
+  <!-- ══ SCALING ══ -->
+  <div id="page-scaling" class="page-wrap">
+    <div class="note"><strong>Correct interpretation (patch report §10.6):</strong> Scaling from 925 to 1,982 confirms robustness — it does not mainly improve performance. SigLIP2 structure Pearson is <em>stable</em> (+0.416 → +0.407, Δ −0.009, within noise). LLM structure MAE <em>degrades</em> (+0.077, ~5.5× noise floor) under distribution shift, while ranking signal is preserved. Scaling converts the marginal LLM vs Median headline (−0.028) into a confirmed result (−0.033, ~2.4× noise floor).</div>
+
+    <div class="compare-pair">
+      <div class="compare-card">
+        <div class="cc-label">v8 · splits_v1 test · n=185</div>
+        <div class="cc-key"><span class="cc-k">LLM overall MAE</span><span class="cc-v same">0.860</span></div>
+        <div class="cc-key"><span class="cc-k">SigLIP2 overall MAE</span><span class="cc-v same">0.854</span></div>
+        <div class="cc-key"><span class="cc-k">Median MAE</span><span class="cc-v same">0.888</span></div>
+        <div class="cc-key"><span class="cc-k">LLM vs Median</span><span class="cc-v same">−0.028 (marginal)</span></div>
+        <div class="cc-key"><span class="cc-k">SigLIP2 structure r</span><span class="cc-v same">+0.416</span></div>
+        <div class="cc-key"><span class="cc-k">LLM structure r</span><span class="cc-v same">+0.307</span></div>
+        <div class="cc-key"><span class="cc-k">LLM structure MAE</span><span class="cc-v same">0.870</span></div>
+        <div class="cc-key"><span class="cc-k">LLM relevance r</span><span class="cc-v same">+0.095</span></div>
+      </div>
+      <div class="compare-card highlight">
+        <div class="cc-label" style="color:var(--blue);">v9 · splits_v2 test · n=396 ← current</div>
+        <div class="cc-key"><span class="cc-k">LLM overall MAE</span><span class="cc-v same">0.864 <span style="color:var(--muted);font-size:11px;">(stable)</span></span></div>
+        <div class="cc-key"><span class="cc-k">SigLIP2 overall MAE</span><span class="cc-v down">0.877 ↑ slightly worse</span></div>
+        <div class="cc-key"><span class="cc-k">Median MAE</span><span class="cc-v down">0.897 ↑</span></div>
+        <div class="cc-key"><span class="cc-k">LLM vs Median</span><span class="cc-v up">−0.033 ✓ confirmed</span></div>
+        <div class="cc-key"><span class="cc-k">SigLIP2 structure r</span><span class="cc-v up">+0.407 <span style="color:var(--muted);font-size:11px;">(stable, Δ −0.009)</span></span></div>
+        <div class="cc-key"><span class="cc-k">LLM structure r</span><span class="cc-v same">+0.266 <span style="color:var(--muted);font-size:11px;">(signal kept)</span></span></div>
+        <div class="cc-key"><span class="cc-k">LLM structure MAE</span><span class="cc-v down">0.947 ↑ degrades (+0.077)</span></div>
+        <div class="cc-key"><span class="cc-k">LLM relevance r</span><span class="cc-v down">+0.048 → near 0 (ceiling)</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Pearson r — v8 vs v9 comparison per dimension</div>
+      <div class="card-desc">SigLIP2 structure is stable. LLM relevance converges to 0 (ceiling confirmed). LLM structure ranking signal slightly decreases but MAE calibration degrades more severely.</div>
+      <div class="legend">
+        <div class="legend-item"><div class="ld" style="background:#94a3b8;"></div>v8 n=185</div>
+        <div class="legend-item"><div class="ld" style="background:#3b6fd4;"></div>LLM v9 n=396</div>
+        <div class="legend-item"><div class="ld" style="background:#2daa6e;"></div>SigLIP2 v9 n=396</div>
+      </div>
+      <div style="position:relative;height:240px;"><canvas id="scalingChart"></canvas></div>
+    </div>
+    <div class="note good"><strong>Final Report implication:</strong> Both methods remain as the two viable signal-carrying method families — neither dominates the other in overall MAE (within noise). LLM wins on overall MAE (0.864 vs 0.877); SigLIP2 wins on structure Pearson r (+0.407 vs +0.266). The new finding from scaling: LLM-as-judge shows calibration instability under distribution shift on structure, while ranking signal is preserved — a caveat for production deployment.</div>
+  </div>
+
+</div><!-- /main -->
+</div><!-- /layout -->
+
+<script>
+// ── NAV ──
+function goto(id, el){
+  document.querySelectorAll('.page-wrap').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  el.classList.add('active');
+  if(!inited[id]){inited[id]=true;initPage(id);}
+  // scroll tab into view on small screens
+  el.scrollIntoView({block:'nearest',inline:'center',behavior:'smooth'});
+}
+const inited={home:false};
+
+// ── CHART DEFAULTS ──
+const BC='rgba(0,0,0,0.04)',TC='#8492a6';
+const MO="'Inter',sans-serif";
+const TP={backgroundColor:'#ffffff',titleColor:'#1a2235',bodyColor:'#4a5568',borderColor:'#e2e6ee',borderWidth:1,padding:10,cornerRadius:6};
+function base(extra){
+  return{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:TP},
+    scales:{x:{grid:{color:BC},ticks:{color:TC,font:{family:MO,size:11}},border:{color:'#e2e6ee'}},
+            y:{grid:{color:BC},ticks:{color:TC,font:{family:MO,size:11}},border:{color:'#e2e6ee'},...(extra||{})}}};
+}
+const DIMS=['clarity','relevance','informativeness','structure'];
+const HUMAN={clarity:{1:67,2:123,3:210,4:288,5:237},relevance:{1:30,2:50,3:208,4:347,5:290},informativeness:{1:55,2:97,3:314,4:286,5:173},structure:{1:38,2:71,3:316,4:279,5:221}};
+const PRED={clarity:{2:9,3:87,4:775,5:53},relevance:{3:2,4:873,5:49},informativeness:{2:7,3:411,4:471,5:35},structure:{2:2,3:95,4:826,5:1}};
+const CONF={
+  clarity:[[0,5,9,53,0],[0,1,19,100,3],[0,1,25,171,12],[0,1,22,247,18],[0,1,12,204,20]],
+  relevance:[[0,0,1,29,0],[0,0,0,47,3],[0,0,0,200,7],[0,0,1,324,22],[0,0,0,273,17]],
+  informativeness:[[0,3,41,11,0],[0,2,69,24,2],[0,1,146,158,8],[0,1,94,178,13],[0,0,61,100,12]],
+  structure:[[0,2,13,23,0],[0,0,19,52,0],[0,0,42,273,0],[0,0,14,264,1],[0,0,7,214,0]]
+};
+const BIAS={clarity:[2.72,1.85,0.93,-0.02,-0.97],relevance:[2.97,2.06,1.03,0.06,-0.94],informativeness:[2.15,1.27,0.55,-0.29,-1.28],structure:[2.55,1.73,0.87,-0.05,-1.03]};
+
+const BT_DATA=[
+  {id:'01604::fig_02',bt:0.044,wr:100.0,wins:199,losses:0},{id:'00002::fig_01',bt:0.0337,wr:99.5,wins:189,losses:1},
+  {id:'07211::fig_07',bt:0.0337,wr:99.5,wins:189,losses:1},{id:'03693::fig_02',bt:0.0325,wr:99.5,wins:187,losses:1},
+  {id:'04352::fig_02',bt:0.0275,wr:98.4,wins:183,losses:3},{id:'00323::fig_02',bt:0.0272,wr:99.4,wins:180,losses:1},
+  {id:'04088::fig_02',bt:0.0272,wr:99.4,wins:180,losses:1},{id:'00053::fig_01',bt:0.0221,wr:96.7,wins:177,losses:6},
+  {id:'03117::fig_01',bt:0.0221,wr:96.7,wins:177,losses:6},{id:'06745::fig_01',bt:0.0221,wr:96.7,wins:177,losses:6},
+  {id:'00007::fig_01',bt:0.0212,wr:97.2,wins:174,losses:5},{id:'02750::fig_03',bt:0.0212,wr:97.2,wins:174,losses:5},
+  {id:'07308::fig_02',bt:0.0212,wr:97.2,wins:174,losses:5},{id:'03121::fig_01',bt:0.0191,wr:98.2,wins:165,losses:3},
+  {id:'04110::fig_02',bt:0.0188,wr:97.1,wins:167,losses:5},{id:'04163::fig_10',bt:0.0188,wr:97.1,wins:167,losses:5},
+  {id:'01156::fig_02',bt:0.0167,wr:93.3,wins:168,losses:12},{id:'05100::fig_02',bt:0.0167,wr:93.3,wins:168,losses:12},
+  {id:'03742::fig_03',bt:0.0163,wr:94.8,wins:165,losses:9},{id:'06905::fig_02',bt:0.0163,wr:94.8,wins:165,losses:9},
+  {id:'05381::fig_02',bt:0.0162,wr:96.4,wins:161,losses:6},{id:'07192::fig_02',bt:0.014,wr:95.1,wins:155,losses:8},
+  {id:'00139::fig_01',bt:0.0137,wr:93.3,wins:154,losses:11},{id:'06440::fig_03',bt:0.0137,wr:93.3,wins:154,losses:11},
+  {id:'00042::fig_02',bt:0.0137,wr:91.6,wins:163,losses:15},{id:'02304::fig_02',bt:0.0137,wr:91.6,wins:163,losses:15},
+  {id:'06921::fig_02',bt:0.0137,wr:91.6,wins:163,losses:15},{id:'07398::fig_01',bt:0.0137,wr:91.6,wins:163,losses:15},
+  {id:'03776::fig_02',bt:0.0117,wr:91.4,wins:148,losses:14},{id:'07015::fig_01',bt:0.0113,wr:88.8,wins:158,losses:20},
+  {id:'06357::fig_01',bt:0.0111,wr:90.9,wins:149,losses:15},{id:'00138::fig_01',bt:0.0109,wr:90.5,wins:153,losses:16},
+  {id:'02690::fig_02',bt:0.0109,wr:90.5,wins:153,losses:16},{id:'06550::fig_03',bt:0.0109,wr:90.5,wins:153,losses:16},
+  {id:'00610::fig_02',bt:0.0099,wr:88.7,wins:149,losses:19},{id:'03694::fig_02',bt:0.0099,wr:88.7,wins:149,losses:19},
+  {id:'04722::fig_03',bt:0.0099,wr:88.7,wins:149,losses:19},{id:'04865::fig_01',bt:0.0099,wr:88.7,wins:149,losses:19},
+  {id:'07339::fig_02',bt:0.0099,wr:88.7,wins:149,losses:19},{id:'04926::fig_01',bt:0.0078,wr:83.0,wins:146,losses:30},
+  {id:'05633::fig_01',bt:0.0078,wr:83.0,wins:146,losses:30},{id:'05750::fig_09',bt:0.0078,wr:83.0,wins:146,losses:30},
+  {id:'00056::fig_01',bt:0.0078,wr:85.2,wins:138,losses:24},{id:'04536::fig_05',bt:0.0078,wr:85.2,wins:138,losses:24},
+  {id:'06399::fig_02',bt:0.0078,wr:85.2,wins:138,losses:24},{id:'04199::fig_12',bt:0.0068,wr:80.6,wins:141,losses:34},
+  {id:'06281::fig_03',bt:0.0068,wr:80.6,wins:141,losses:34},{id:'00110::fig_01',bt:0.0066,wr:82.2,wins:134,losses:29},
+  {id:'00206::fig_01',bt:0.0066,wr:82.2,wins:134,losses:29},{id:'03140::fig_01',bt:0.0066,wr:82.2,wins:134,losses:29},
+];
+const BT_WR=[100,99.5,99.5,99.5,98.4,99.4,99.4,96.7,96.7,96.7,97.2,97.2,97.2,98.2,97.1,97.1,93.3,93.3,94.8,94.8,96.4,95.1,93.3,93.3,91.6,91.6,91.6,91.6,91.4,88.8,90.9,90.5,90.5,90.5,88.7,88.7,88.7,88.7,88.7,83,83,83,85.2,85.2,85.2,80.6,80.6,82.2,82.2,82.2,77,77,77,77,76.9,76.9,75.7,76,70.6,69.2,69.2,68.8,68.8,70.1,70.1,70.6,70.6,68.2,68.2,65.9,65.9,65.9,65.9,65.9,65.9,65.9,64.7,64.7,64.2,64.2,63.2,61.4,61.8,61.8,61.8,61.8,60.6,58.3,56.6,56.6,55.6,55.6,55.6,53.6,53.1,52.4,52.4,52,51.4,50.3,50.3,50.3,50.6,47.6,47,46.2,46.2,45.5,45.5,40,42.1,41.1,41.1,41.1,39.8,39.3,39.3,39.3,39.3,39.3,39.3,37.3,37.3,37.3,29.7,33.3,33.3,33.3,35.4,29.9,28.5,28.5,27.5,27.5,26.1,27.5,27.5,27.5,27.5,27.5,27.5,27.5,27.5,27.5,27.5,27.5,27.5,27.5,27.5,26.5,22.5,22.5,22.7,21.9,19.9,19.9,19.2,19.2,19.2,17.9,16.9,16.9,17.6,16.1,16.1,14.8,14.9,12.8,13.5,13.5,12.2,13.4,13.2,13.2,12.3,12.2,10.3,10.3,7.9,8.3,7.5,7.8,7.8,6.2,5.2,5.2,5.2,5.2,4.7,3.7,2.6,2.1,2.1,2.1,1.6,1,0.5,0.5,0.5,0];
+const BT_BT=[0.044,0.0337,0.0337,0.0325,0.0275,0.0272,0.0272,0.0221,0.0221,0.0221,0.0212,0.0212,0.0212,0.0191,0.0188,0.0188,0.0167,0.0167,0.0163,0.0163,0.0162,0.014,0.0137,0.0137,0.0137,0.0137,0.0137,0.0137,0.0117,0.0113,0.0111,0.0109,0.0109,0.0109,0.0099,0.0099,0.0099,0.0099,0.0099,0.0078,0.0078,0.0078,0.0078,0.0078,0.0078,0.0068,0.0068,0.0066,0.0066,0.0066,0.0057,0.0057,0.0057,0.0057,0.0056,0.0056,0.0052,0.0051,0.0039,0.0038,0.0038,0.0037,0.0037,0.0037,0.0037,0.0036,0.0036,0.0036,0.0036,0.0033,0.0033,0.0033,0.0033,0.0031,0.0031,0.0031,0.0031,0.0031,0.0029,0.0029,0.0028,0.0026,0.0026,0.0026,0.0026,0.0026,0.0025,0.0022,0.002,0.002,0.002,0.002,0.002,0.0018,0.0018,0.0017,0.0017,0.0017,0.0016,0.0016,0.0016,0.0016,0.0015,0.0014,0.0013,0.0013,0.0013,0.0012,0.0012,0.0011,0.001,0.001,0.001,0.001,0.001,0.0008,0.0008,0.0008,0.0008,0.0008,0.0006,0.0006,0.0006,0.0006,0.0006,0.0005,0.0005,0.0005,0.0005,0.0005,0.0005,0.0005,0.0005,0.0005,0.0005,0.0005,0.0005,0.0004,0.0004,0.0004,0.0003,0.0003,0.0003,0.0003,0.0003,0.0003,0.0003,0.0002,0.0002,0.0002,0.0002,0.0002,0.0002,0.0002,0.0002,0.0002,0.0001,0.0001,0.0001,0.0001,0.0001,0.0001,0.0001,0.0001,0.0001,0.0001,0.0001,0.0001,0.0001,0.0001,0.0001,0.0001,0.0001,0.0001,0.0001,0.0001,0.0001,0.0001,0.0001,0.0001,0.0001];
+
+function getTier(bt){return bt>=0.025?'S':bt>=0.01?'A':bt>=0.003?'B':'C';}
+function tierFill(t){return t==='S'?'#b7791f':t==='A'?'#2daa6e':t==='B'?'#3b6fd4':'#94a3b8';}
+
+// ── HOME ──
+(function(){
+  new Chart(document.getElementById('homeMAE'),{type:'bar',
+    data:{labels:['clarity','relevance','informativeness','structure'],datasets:[
+      {label:'LLM',data:[0.902,0.778,0.828,0.947],backgroundColor:'#3b6fd4',borderRadius:4},
+      {label:'SigLIP2',data:[0.930,0.843,0.875,0.859],backgroundColor:'#2daa6e',borderRadius:4},
+      {label:'Median',data:[0.929,0.768,0.957,0.934],backgroundColor:'#94a3b8',borderRadius:4}]},
+    options:{...base(),plugins:{...base().plugins,legend:{display:true,labels:{color:TC,font:{family:MO,size:11},boxWidth:10,boxHeight:10}}},scales:{x:{grid:{color:BC},ticks:{color:TC,font:{family:MO,size:11}},border:{color:'#e2e6ee'}},y:{grid:{color:BC},ticks:{color:TC,font:{family:MO,size:11}},border:{color:'#e2e6ee'},min:0.6,max:1.1}}}});
+  new Chart(document.getElementById('homePearson'),{type:'bar',
+    data:{labels:['clarity','relevance','informativeness','structure'],datasets:[
+      {label:'LLM',data:[0.207,0.048,0.298,0.266],backgroundColor:'#3b6fd4',borderRadius:4},
+      {label:'SigLIP2',data:[0.209,0.187,0.311,0.407],backgroundColor:'#2daa6e',borderRadius:4}]},
+    options:{...base(),plugins:{...base().plugins,legend:{display:true,labels:{color:TC,font:{family:MO,size:11},boxWidth:10,boxHeight:10}}},scales:{x:{grid:{color:BC},ticks:{color:TC,font:{family:MO,size:11}},border:{color:'#e2e6ee'}},y:{grid:{color:BC},ticks:{color:TC,font:{family:MO,size:11}},border:{color:'#e2e6ee'},min:0,max:0.5}}}});
+})();
+
+function initPage(id){
+  if(id==='score-dist')initSD();
+  else if(id==='mae')initMAE();
+  else if(id==='bias')initBias();
+  else if(id==='confusion'){initConf();showConf('clarity',document.querySelector('.dim-tab'));}
+  else if(id==='figtype')initFT();
+  else if(id==='judges')initJudges();
+  else if(id==='consistency')initConsist();
+  else if(id==='bt')initBT();
+  else if(id==='pairwise')initPW();
+  else if(id==='scaling')initScaling();
+}
+
+function initSD(){
+  const ids=['dClar','dRel','dInfo','dStr'];
+  ['clarity','relevance','informativeness','structure'].forEach((k,i)=>{
+    const h=[1,2,3,4,5].map(s=>HUMAN[k][s]||0);
+    const p=[1,2,3,4,5].map(s=>PRED[k][s]||0);
+    new Chart(document.getElementById(ids[i]),{type:'bar',
+      data:{labels:['1','2','3','4','5'],datasets:[
+        {label:'human',data:h,backgroundColor:'rgba(59,111,212,0.7)',borderRadius:3},
+        {label:'predicted',data:p,backgroundColor:'rgba(45,170,110,0.7)',borderRadius:3}]},
+      options:{...base(),plugins:{...base().plugins,legend:{display:true,labels:{color:TC,font:{family:MO,size:10},boxWidth:8,boxHeight:8}}}}});
+  });
+  const labels=['0','0–0.25','0.25–0.5','0.5–0.75','0.75–1','1–1.5','1.5–2','2–3'];
+  const counts=[43,127,177,188,179,148,41,21];
+  new Chart(document.getElementById('maeHistChart'),{type:'bar',
+    data:{labels,datasets:[{data:counts,backgroundColor:labels.map((_,i)=>i<3?'#2daa6e':i<5?'#e8951a':'#d94f4f'),borderRadius:4}]},
+    options:base()});
+}
+function initMAE(){
+  const err={clarity:{0:293,1:440,2:134,3:57},relevance:{0:341,1:496,2:55,3:32},informativeness:{0:338,1:438,2:135,3:13},structure:{0:306,1:523,2:72,3:23}};
+  const C=['#3b6fd4','#2daa6e','#e8951a','#d94f4f'];
+  new Chart(document.getElementById('errFreq'),{type:'bar',
+    data:{labels:['0 (exact)','1','2','3'],
+      datasets:DIMS.map((d,i)=>({label:d,data:[0,1,2,3].map(e=>err[d][e]),backgroundColor:C[i],borderRadius:4}))},
+    options:{...base(),plugins:{...base().plugins,legend:{display:true,labels:{color:TC,font:{family:MO,size:11},boxWidth:10,boxHeight:10}}}}});
+  const PR={clarity:0.187,relevance:0.058,informativeness:0.280,structure:0.280};
+  const SR={clarity:0.170,relevance:0.049,informativeness:0.268,structure:0.254};
+  new Chart(document.getElementById('pearsonV8'),{type:'bar',
+    data:{labels:DIMS,datasets:[{data:DIMS.map(d=>PR[d]),backgroundColor:C,borderRadius:4}]},
+    options:{...base(),scales:{x:{grid:{color:BC},ticks:{color:TC,font:{family:MO,size:11}},border:{color:'#e2e6ee'}},y:{grid:{color:BC},ticks:{color:TC,font:{family:MO,size:11}},border:{color:'#e2e6ee'},min:0,max:0.35}}}});
+  new Chart(document.getElementById('spearmanV8'),{type:'bar',
+    data:{labels:DIMS,datasets:[{data:DIMS.map(d=>SR[d]),backgroundColor:C,borderRadius:4}]},
+    options:{...base(),scales:{x:{grid:{color:BC},ticks:{color:TC,font:{family:MO,size:11}},border:{color:'#e2e6ee'}},y:{grid:{color:BC},ticks:{color:TC,font:{family:MO,size:11}},border:{color:'#e2e6ee'},min:0,max:0.35}}}});
+}
+function initBias(){
+  new Chart(document.getElementById('biasChart'),{type:'line',
+    data:{labels:['human=1','human=2','human=3','human=4','human=5'],datasets:[
+      {label:'clarity',data:BIAS.clarity,borderColor:'#3b6fd4',backgroundColor:'rgba(59,111,212,0.06)',pointRadius:5,pointBackgroundColor:'#3b6fd4',tension:0.35},
+      {label:'relevance',data:BIAS.relevance,borderColor:'#2daa6e',backgroundColor:'rgba(45,170,110,0.06)',pointRadius:5,pointBackgroundColor:'#2daa6e',tension:0.35},
+      {label:'informativeness',data:BIAS.informativeness,borderColor:'#e8951a',backgroundColor:'rgba(232,149,26,0.06)',pointRadius:5,pointBackgroundColor:'#e8951a',tension:0.35},
+      {label:'structure',data:BIAS.structure,borderColor:'#d94f4f',backgroundColor:'rgba(217,79,79,0.06)',pointRadius:5,pointBackgroundColor:'#d94f4f',tension:0.35}]},
+    options:{...base(),plugins:{...base().plugins,legend:{display:true,labels:{color:TC,font:{family:MO,size:11},boxWidth:12,usePointStyle:true}}},
+      scales:{x:{grid:{color:BC},ticks:{color:TC,font:{family:MO,size:11}},border:{color:'#e2e6ee'}},
+              y:{grid:{color:BC},ticks:{color:TC,font:{family:MO,size:11}},border:{color:'#e2e6ee'},min:-1.5,max:3.5,title:{display:true,text:'bias (pred − human)',color:TC,font:{size:11}}}}}});
+  const ftb={arch:{clarity:0.282,relevance:-0.082,informativeness:0.091,structure:0.109},qual:{clarity:0.473,relevance:0.208,informativeness:0.020,structure:0.420},other:{clarity:0.459,relevance:0.400,informativeness:0.228,structure:0.328}};
+  new Chart(document.getElementById('ftBias'),{type:'bar',
+    data:{labels:DIMS,datasets:[
+      {label:'arch_diagram',data:DIMS.map(d=>ftb.arch[d]),backgroundColor:'#3b6fd4',borderRadius:4},
+      {label:'qualitative_ex',data:DIMS.map(d=>ftb.qual[d]),backgroundColor:'#e8951a',borderRadius:4},
+      {label:'other',data:DIMS.map(d=>ftb.other[d]),backgroundColor:'#d94f4f',borderRadius:4}]},
+    options:{...base(),plugins:{...base().plugins,legend:{display:true,labels:{color:TC,font:{family:MO,size:11},boxWidth:10,boxHeight:10}}}}});
+}
+function initConf(){}
+function showConf(dim,btn){
+  document.querySelectorAll('.dim-tab').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  const mat=CONF[dim];
+  const card=document.getElementById('confCard');
+  let h=`<div class="card-title">Confusion matrix — ${dim}</div><div class="card-desc" style="margin-bottom:12px;">Rows = human score (1–5) · Columns = predicted score (1–5)</div>
+    <div class="confusion-wrap"><table class="confusion-table"><thead><tr><th>H↓ P→</th><th>pred 1</th><th>pred 2</th><th>pred 3</th><th>pred 4</th><th>pred 5</th></tr></thead><tbody>`;
+  mat.forEach((row,ri)=>{
+    h+=`<tr><th style="background:var(--surface2);font-weight:500;color:var(--text2);">human ${ri+1}</th>`;
+    row.forEach((v,ci)=>{const cls=v===0?'cf-zero':ri===ci?'cf-diag':ci>ri?'cf-over':'cf-under';h+=`<td class="${cls}">${v}</td>`;});
+    h+='</tr>';
+  });
+  h+='</tbody></table></div>';
+  card.innerHTML=h;
+}
+function initFT(){
+  // v2 test per figure type per dim - from patch report
+  const llm={arch:{rel:0.610,inf:0.733,str:0.849,cla:0.870},qual:{rel:0.883,inf:0.892,str:1.054,cla:1.045},other:{rel:0.871,inf:0.878,str:0.964,cla:0.820}};
+  const sig={arch:{rel:0.686,inf:0.745,str:0.893,cla:0.962},qual:{rel:0.998,inf:0.949,str:0.874,cla:0.956},other:{rel:0.883,inf:0.953,str:0.811,cla:0.877}};
+  const labs=['clarity','relevance','informativeness','structure'];
+  const keys=['cla','rel','inf','str'];
+  new Chart(document.getElementById('ftMAE'),{type:'bar',
+    data:{labels:labs,datasets:[
+      {label:'arch_diagram (n=146)',data:keys.map(k=>llm.arch[k]),backgroundColor:'#3b6fd4',borderRadius:4},
+      {label:'qualitative_ex (n=111)',data:keys.map(k=>llm.qual[k]),backgroundColor:'#e8951a',borderRadius:4},
+      {label:'other (n=139)',data:keys.map(k=>llm.other[k]),backgroundColor:'#d94f4f',borderRadius:4}]},
+    options:{...base(),plugins:{...base().plugins,legend:{display:true,labels:{color:TC,font:{family:MO,size:11},boxWidth:10,boxHeight:10}}},scales:{x:{grid:{color:BC},ticks:{color:TC,font:{family:MO,size:11}},border:{color:'#e2e6ee'}},y:{grid:{color:BC},ticks:{color:TC,font:{family:MO,size:11}},border:{color:'#e2e6ee'},min:0.5,max:1.15}}}});
+  new Chart(document.getElementById('siglipMAE'),{type:'bar',
+    data:{labels:labs,datasets:[
+      {label:'arch_diagram',data:keys.map(k=>sig.arch[k]),backgroundColor:'rgba(59,111,212,0.6)',borderRadius:4},
+      {label:'qualitative_ex',data:keys.map(k=>sig.qual[k]),backgroundColor:'rgba(232,149,26,0.6)',borderRadius:4},
+      {label:'other',data:keys.map(k=>sig.other[k]),backgroundColor:'rgba(217,79,79,0.6)',borderRadius:4}]},
+    options:{...base(),plugins:{...base().plugins,legend:{display:true,labels:{color:TC,font:{family:MO,size:11},boxWidth:10,boxHeight:10}}},scales:{x:{grid:{color:BC},ticks:{color:TC,font:{family:MO,size:11}},border:{color:'#e2e6ee'}},y:{grid:{color:BC},ticks:{color:TC,font:{family:MO,size:11}},border:{color:'#e2e6ee'},min:0.5,max:1.1}}}});
+  new Chart(document.getElementById('splitChart'),{type:'bar',
+    data:{labels:['train','dev','test'],datasets:[
+      {label:'arch_diagram',data:[438,140,146],backgroundColor:'#3b6fd4',borderRadius:0},
+      {label:'qualitative_ex',data:[330,115,111],backgroundColor:'#2daa6e',borderRadius:0},
+      {label:'other',data:[416,147,139],backgroundColor:'#e8951a',borderRadius:4}]},
+    options:{...base(),plugins:{...base().plugins,legend:{display:true,labels:{color:TC,font:{family:MO,size:11},boxWidth:10,boxHeight:10}}},scales:{x:{...base().scales.x,stacked:true},y:{...base().scales.y,stacked:true}}}});
+}
+function initJudges(){
+  new Chart(document.getElementById('judgesChart'),{type:'bar',
+    data:{labels:DIMS,datasets:[
+      {label:'gpt-5.4-mini',data:[0.845,0.690,0.770,0.850],backgroundColor:'#3b6fd4',borderRadius:4},
+      {label:'gemini-2.5-flash',data:[0.850,0.915,0.935,0.910],backgroundColor:'#2daa6e',borderRadius:4},
+      {label:'haiku-4.5',data:[0.835,0.950,0.925,0.880],backgroundColor:'#e8951a',borderRadius:4}]},
+    options:{...base(),plugins:{...base().plugins,legend:{display:true,labels:{color:TC,font:{family:MO,size:11},boxWidth:10,boxHeight:10}}},scales:{x:{grid:{color:BC},ticks:{color:TC,font:{family:MO,size:11}},border:{color:'#e2e6ee'}},y:{grid:{color:BC},ticks:{color:TC,font:{family:MO,size:11}},border:{color:'#e2e6ee'},min:0.5,max:1.1}}}});
+  new Chart(document.getElementById('judgeRank'),{type:'bar',
+    data:{labels:['gpt-5.4-mini','haiku-4.5','gemini-2.5-flash'],datasets:[{data:[0.789,0.898,0.903],backgroundColor:['#3b6fd4','#e8951a','#2daa6e'],borderRadius:4}]},
+    options:{...base(),indexAxis:'y',scales:{x:{grid:{color:BC},ticks:{color:TC,font:{family:MO,size:11}},border:{color:'#e2e6ee'},min:0.7,max:0.95},y:{grid:{color:BC},ticks:{color:TC,font:{family:MO,size:11}},border:{color:'#e2e6ee'}}}}});
+}
+function initConsist(){
+  new Chart(document.getElementById('consistChart'),{type:'bar',
+    data:{labels:['structure','relevance','clarity','informativeness'],datasets:[
+      {label:'Inter-judge MAE',data:[0.125,0.325,0.487,0.621],backgroundColor:'#d94f4f',borderRadius:4,yAxisID:'y'},
+      {label:'Exact agree %',data:[87.7,67.8,53.9,41.8],backgroundColor:'rgba(45,170,110,0.25)',borderColor:'#2daa6e',borderWidth:1.5,borderRadius:4,yAxisID:'y2'}]},
+    options:{...base(),plugins:{...base().plugins,legend:{display:true,labels:{color:TC,font:{family:MO,size:11},boxWidth:10,boxHeight:10}}},
+      scales:{x:{grid:{color:BC},ticks:{color:TC,font:{family:MO,size:11}},border:{color:'#e2e6ee'}},
+        y:{grid:{color:BC},ticks:{color:TC,font:{family:MO,size:11}},border:{color:'#e2e6ee'},position:'left',max:0.8,title:{display:true,text:'MAE',color:TC,font:{size:11}}},
+        y2:{position:'right',grid:{display:false},border:{display:false},ticks:{color:TC,font:{family:MO,size:11},callback:v=>v+'%'},max:130}}}});
+  new Chart(document.getElementById('alphaChart'),{type:'bar',
+    data:{labels:['clarity','informativeness','structure','relevance'],datasets:[{data:[0.239,0.198,0.065,0.064],backgroundColor:['#3b6fd4','#d94f4f','#2daa6e','#e8951a'],borderRadius:4}]},
+    options:{...base(),scales:{x:{grid:{color:BC},ticks:{color:TC,font:{family:MO,size:11}},border:{color:'#e2e6ee'}},y:{grid:{color:BC},ticks:{color:TC,font:{family:MO,size:11}},border:{color:'#e2e6ee'},min:0,max:0.35,title:{display:true,text:"Krippendorff α",color:TC,font:{size:11}}}}}});
+}
+function initBT(){
+  const bins=[0,0.005,0.01,0.015,0.02,0.025,0.03,0.035,0.04,0.045];
+  const counts=new Array(bins.length-1).fill(0);
+  BT_BT.forEach(s=>{for(let i=0;i<bins.length-1;i++)if(s>=bins[i]&&s<bins[i+1]){counts[i]++;break;}});
+  new Chart(document.getElementById('btDist'),{type:'bar',
+    data:{labels:bins.slice(0,-1).map((b,i)=>b.toFixed(3)+'-'+bins[i+1].toFixed(3)),
+      datasets:[{data:counts,backgroundColor:bins.slice(0,-1).map(b=>b>=0.025?'#b7791f':b>=0.01?'#2daa6e':b>=0.003?'#3b6fd4':'#94a3b8'),borderRadius:4}]},
+    options:{...base(),scales:{x:{grid:{color:BC},ticks:{color:TC,font:{family:MO,size:10},maxRotation:45,autoSkip:false},border:{color:'#e2e6ee'}},y:{grid:{color:BC},ticks:{color:TC,font:{family:MO,size:11}},border:{color:'#e2e6ee'}}}}});
+  renderBTTable('all');
+}
+let curTier='all';
+function filterTier(t,btn){
+  curTier=t;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  renderBTTable(t);
+}
+function renderBTTable(t){
+  const data=t==='all'?BT_DATA:BT_DATA.filter(d=>getTier(d.bt)===t);
+  document.getElementById('filter-count').textContent=data.length+' figures';
+  const maxW=Math.max(...BT_DATA.map(d=>d.wins));
+  document.getElementById('btBody').innerHTML=data.map((d,i)=>{
+    const tier=getTier(d.bt);const fill=tierFill(tier);const rank=BT_DATA.indexOf(d)+1;
+    return `<tr><td style="color:var(--muted);">${rank}</td>
+      <td style="font-family:monospace;font-size:11px;" title="ICLR_2024_${d.id}">…${d.id.slice(-14)}</td>
+      <td><span class="tier-${tier}">${tier}</span></td>
+      <td style="font-weight:600;color:${fill};">${d.bt.toFixed(4)}</td>
+      <td>${d.wr.toFixed(1)}%</td>
+      <td><div class="wb-wrap"><div class="wb-track"><div class="wb-fill" style="width:${(d.wins/maxW*100).toFixed(0)}%;background:${fill};"></div></div>
+        <span style="font-size:11px;color:var(--muted);white-space:nowrap;">${d.wins}W ${d.losses}L</span></div></td></tr>`;
+  }).join('');
+}
+function initPW(){
+  const pw=[{id:'03118::fig_01',w:920},{id:'03531::fig_03',w:920},{id:'07211::fig_07',w:920},{id:'00002::fig_01',w:886},{id:'02473::fig_17',w:886},{id:'05054::fig_01',w:886},{id:'05864::fig_01',w:885},{id:'04286::fig_05',w:859},{id:'00027::fig_05',w:856},{id:'00610::fig_02',w:856},{id:'00938::fig_01',w:856},{id:'00962::fig_16',w:856},{id:'01157::fig_03',w:856},{id:'01699::fig_07',w:856},{id:'01860::fig_16',w:856}];
+  new Chart(document.getElementById('pwTop15'),{type:'bar',
+    data:{labels:pw.map(d=>'…'+d.id.slice(-10)),datasets:[{data:pw.map(d=>d.w),backgroundColor:'#3b6fd4',borderRadius:4}]},
+    options:{...base(),indexAxis:'y',scales:{x:{grid:{color:BC},ticks:{color:TC,font:{family:MO,size:10}},border:{color:'#e2e6ee'},min:800},y:{grid:{color:BC},ticks:{color:TC,font:{family:MO,size:10}},border:{color:'#e2e6ee'}}}}});
+  const t40=BT_DATA.slice(0,40);
+  new Chart(document.getElementById('pwWL'),{type:'bar',
+    data:{labels:t40.map((_,i)=>'#'+(i+1)),datasets:[
+      {label:'wins',data:t40.map(d=>d.wins),backgroundColor:'#2daa6e',borderRadius:0},
+      {label:'losses',data:t40.map(d=>-d.losses),backgroundColor:'#d94f4f',borderRadius:0}]},
+    options:{...base(),plugins:{...base().plugins,legend:{display:true,labels:{color:TC,font:{family:MO,size:11},boxWidth:10,boxHeight:10}}},scales:{x:{...base().scales.x,stacked:true},y:{...base().scales.y,stacked:true}}}});
+  new Chart(document.getElementById('btScatter'),{type:'scatter',
+    data:{datasets:[{data:BT_WR.map((w,i)=>({x:w,y:BT_BT[i]})),
+      backgroundColor:BT_BT.map(b=>{const t=getTier(b);return t==='S'?'rgba(183,121,31,0.85)':t==='A'?'rgba(45,170,110,0.75)':t==='B'?'rgba(59,111,212,0.6)':'rgba(148,163,184,0.5)';}),
+      pointRadius:BT_BT.map(b=>getTier(b)==='S'?7:getTier(b)==='A'?5:3.5)}]},
+    options:{...base(),scales:{x:{grid:{color:BC},ticks:{color:TC,font:{family:MO,size:11}},border:{color:'#e2e6ee'},min:-5,max:105,title:{display:true,text:'win rate (%)',color:TC,font:{size:11}}},y:{grid:{color:BC},ticks:{color:TC,font:{family:MO,size:11}},border:{color:'#e2e6ee'},title:{display:true,text:'BT score',color:TC,font:{size:11}}}}}});
+  const wb=[0,10,20,30,40,50,60,70,80,90,100];const wc=new Array(10).fill(0);
+  BT_WR.forEach(w=>{for(let i=0;i<10;i++)if(w>=wb[i]&&w<wb[i+1]){wc[i]++;break;}});
+  new Chart(document.getElementById('wrHist'),{type:'bar',
+    data:{labels:wb.slice(0,-1).map((b,i)=>b+'–'+wb[i+1]+'%'),datasets:[{data:wc,backgroundColor:wb.slice(0,-1).map(b=>b>=90?'#b7791f':b>=70?'#2daa6e':b>=50?'#3b6fd4':'#94a3b8'),borderRadius:4}]},
+    options:{...base(),scales:{x:{grid:{color:BC},ticks:{color:TC,font:{family:MO,size:10},maxRotation:45,autoSkip:false},border:{color:'#e2e6ee'}},y:{grid:{color:BC},ticks:{color:TC,font:{family:MO,size:11}},border:{color:'#e2e6ee'}}}}});
+}
+function initScaling(){
+  new Chart(document.getElementById('scalingChart'),{type:'bar',
+    data:{labels:['clarity','relevance','informativeness','structure'],datasets:[
+      {label:'v8 n=185 (LLM)',data:[0.114,0.095,null,0.307],backgroundColor:'rgba(148,163,184,0.5)',borderRadius:4},
+      {label:'v8 n=185 (SigLIP2)',data:[null,0.221,null,0.416],backgroundColor:'rgba(148,163,184,0.8)',borderRadius:4},
+      {label:'v9 n=396 (LLM)',data:[0.207,0.048,0.298,0.266],backgroundColor:'#3b6fd4',borderRadius:4},
+      {label:'v9 n=396 (SigLIP2)',data:[0.209,0.187,0.311,0.407],backgroundColor:'#2daa6e',borderRadius:4}]},
+    options:{...base(),plugins:{...base().plugins,legend:{display:true,labels:{color:TC,font:{family:MO,size:11},boxWidth:10,boxHeight:10}}},scales:{x:{grid:{color:BC},ticks:{color:TC,font:{family:MO,size:11}},border:{color:'#e2e6ee'}},y:{grid:{color:BC},ticks:{color:TC,font:{family:MO,size:11}},border:{color:'#e2e6ee'},min:0,max:0.5,title:{display:true,text:'Pearson r',color:TC,font:{size:11}}}}}});
+}
+</script>
+</body>
+</html>

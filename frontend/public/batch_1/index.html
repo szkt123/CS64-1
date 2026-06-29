@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scientific Figure Scoring Tool</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <h1>Scientific Figure Scoring Tool</h1>
+      <p>View extracted figure images, score them across four dimensions, add rationales and evidence, then export annotations.</p>
+    </div>
+    <div class="topbar-actions">
+      <button id="exportBtn" type="button">Export JSONL</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <aside class="sidebar panel">
+      <h2>Data Loading</h2>
+      <label class="field">
+        <span>Annotator ID</span>
+        <input id="annotatorInput" type="text" placeholder="e.g. annotator_A">
+      </label>
+
+      <label class="field">
+        <span>Load figures.jsonl / batch_A.json</span>
+        <input id="figuresFile" type="file" accept=".json,.jsonl,.txt,application/json">
+      </label>
+
+      <label class="field">
+        <span>Import Existing Annotations (Optional)</span>
+        <input id="importFile" type="file" accept=".json,.jsonl,.txt,application/json">
+      </label>
+
+      <div class="field">
+        <span>Image Directory Prefix (Optional)</span>
+        <input id="imageBaseInput" type="text" placeholder="e.g. ../ or ../../2021/">
+        <small>Use this when figure_image_path is not relative to the current web page.</small>
+      </div>
+
+      <div class="controls-grid">
+        <button id="prevBtn" type="button">Previous</button>
+        <button id="nextBtn" type="button">Next</button>
+        <button id="saveBtn" type="button">Save Current</button>
+        <button id="clearBtn" type="button" class="ghost">Clear Current</button>
+      </div>
+
+      <div id="statusText" class="status">No data loaded</div>
+
+      <div class="progress-box">
+        <div>Total: <strong id="totalCount">0</strong></div>
+        <div>Saved: <strong id="savedCount">0</strong></div>
+        <div>Current: <strong id="currentPosition">0 / 0</strong></div>
+      </div>
+
+      <h2>Sample Information</h2>
+      <pre id="sampleMeta" class="meta"></pre>
+    </aside>
+
+    <section class="viewer panel">
+      <div class="image-toolbar">
+        <span>Image Preview</span>
+        <button id="reloadImageBtn" type="button" class="ghost">Reload Image</button>
+      </div>
+      <div class="image-wrap">
+        <img id="figureImage" alt="figure image">
+      </div>
+      <details open>
+        <summary>Caption</summary>
+        <div id="captionText" class="text-block"></div>
+      </details>
+      <details open>
+        <summary>Citing Paragraphs</summary>
+        <div id="paragraphsText" class="text-block"></div>
+      </details>
+      <details>
+        <summary>Nearby Context</summary>
+        <div id="nearbyText" class="text-block"></div>
+      </details>
+    </section>
+
+    <section class="annotation panel">
+      <h2>Scoring Area</h2>
+      <div id="scoreSection"></div>
+
+      <div class="evidence-header">
+        <h2>Text Evidence</h2>
+        <button id="addEvidenceBtn" type="button">Add Evidence</button>
+      </div>
+      <div id="evidenceList"></div>
+
+      <p class="tip">Note: Score each dimension from 1 to 5 and provide a rationale. Add at least one piece of text evidence. This page loads the figure image from the <code>figure_image_path</code> field. Only the first two image records are shown.</p>
+    </section>
+  </main>
+
+  <template id="dimensionTemplate">
+    <div class="dimension-card">
+      <h3 class="dimension-title"></h3>
+      <div class="score-group"></div>
+      <textarea class="rationale-input" rows="3" placeholder="Enter the rationale for this dimension"></textarea>
+    </div>
+  </template>
+
+  <template id="evidenceTemplate">
+    <div class="evidence-item">
+      <select class="evidence-source">
+        <option value="caption">caption</option>
+        <option value="paragraph">paragraph</option>
+        <option value="nearby_context">nearby_context</option>
+      </select>
+      <textarea class="evidence-text" rows="2" placeholder="Enter the original evidence text"></textarea>
+      <button class="remove-evidence-btn ghost" type="button">Remove</button>
+    </div>
+  </template>
+
+  <script src="./app.js"></script>
+</body>
+</html>
